@@ -17,10 +17,10 @@ FROM alpine:3.6
 RUN apk add --no-cache ca-certificates \
  && echo -e '{\n\
   "wwwAddress": "0.0.0.0",\n\
-  "wwwPort": 8080,\n\
+  "wwwPort": 4436,\n\
   "wwwPublicURL": "",\n\
   "serviceAddress": "0.0.0.0",\n\
-  "servicePort": 8085,\n\
+  "servicePort": 4437,\n\
   "servicePublicURL": "",\n\
   "smtpAddress": "0.0.0.0",\n\
   "smtpPort": 2500,\n\
@@ -41,6 +41,6 @@ RUN apk add --no-cache ca-certificates \
 
 COPY --from=builder /go/src/github.com/mailslurper/mailslurper/cmd/mailslurper/mailslurper mailslurper
 
-EXPOSE 8080 8085 2500
+EXPOSE 4436 4437 2500
 
 CMD ["./mailslurper"]
