@@ -5,7 +5,7 @@
 $(document).ready(function () {
 	var appURL = window.SettingsService.getAppURL();
 	
-	if (!window.SettingsService.serviceSettingsExistInLocalStore()) {
+	if (!window.SettingsService.serviceSettingsExist()) {
 		window.SettingsService.getServiceSettings()
 			.then(function (serviceSettings) {
 				window.SettingsService.storeServiceSettings(serviceSettings);

@@ -98,7 +98,7 @@ window.SettingsService = {
 	 * from the user's local storage.
 	 */
 	retrieveServiceSettings: function () {
-		return JSON.parse(localStorage["serviceSettings"]);
+		return JSON.parse(sessionStorage["serviceSettings"]);
 	},
 
 	/**
@@ -117,15 +117,15 @@ window.SettingsService = {
 	},
 
 	/**
-	 * serviceSettingsExistInLocalStore returns true/false if the
-	 * MailSlurper service settings are in the user's local storage.
+	 * serviceSettingsExist returns true/false if the
+	 * MailSlurper service settings are in the user's session storage.
 	 */
-	serviceSettingsExistInLocalStore: function () {
-		return (localStorage["serviceSettings"] !== undefined);
+	serviceSettingsExist: function () {
+		return (sessionStorage["serviceSettings"] !== undefined);
 	},
 
 	/**
-	 * storeSavedSearches stores user saved searches in local storage
+	 * storeSavedSearches stores user saved searches in session storage
 	 */
 	storeSavedSearches: function (savedSearches) {
 		localStorage["savedSearches"] = JSON.stringify(savedSearches);
@@ -133,10 +133,10 @@ window.SettingsService = {
 
 	/**
 	 * storeServiceSettings writes the MailSlurper service settings to
-	 * the user's local storage.
+	 * the user's session storage.
 	 */
 	storeServiceSettings: function (serviceSettings) {
-		localStorage["serviceSettings"] = JSON.stringify(serviceSettings);
+		sessionStorage["serviceSettings"] = JSON.stringify(serviceSettings);
 	},
 
 	/**
