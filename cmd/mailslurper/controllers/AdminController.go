@@ -9,8 +9,8 @@ import (
 	"sync"
 
 	"github.com/gorilla/sessions"
-	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo-contrib/session"
+	"github.com/labstack/echo/v4"
 	"github.com/mailslurper/mailslurper/pkg/auth/auth"
 	"github.com/mailslurper/mailslurper/pkg/auth/authfactory"
 	"github.com/mailslurper/mailslurper/pkg/cache"
@@ -42,7 +42,7 @@ func (c *AdminController) Admin(ctx echo.Context) error {
 	context := contexts.GetAdminContext(ctx)
 
 	data := mailslurper.Page{
-		PublicWWWURL: c.Config.GetPublicWWWURL(),
+		PublicWWWURL: c.Config.WWWPublicURL,
 		Theme:        c.Config.GetTheme(),
 		Title:        "Admin",
 		User:         context.User,
@@ -87,7 +87,7 @@ func (c *AdminController) Index(ctx echo.Context) error {
 	context := contexts.GetAdminContext(ctx)
 
 	data := mailslurper.Page{
-		PublicWWWURL: c.Config.GetPublicWWWURL(),
+		PublicWWWURL: c.Config.WWWPublicURL,
 		Theme:        c.Config.GetTheme(),
 		Title:        "Mail",
 		User:         context.User,
@@ -101,7 +101,7 @@ Login renders the login page
 */
 func (c *AdminController) Login(ctx echo.Context) error {
 	data := mailslurper.Page{
-		PublicWWWURL: c.Config.GetPublicWWWURL(),
+		PublicWWWURL: c.Config.WWWPublicURL,
 		Theme:        c.Config.GetTheme(),
 	}
 
@@ -120,7 +120,7 @@ func (c *AdminController) ManageSavedSearches(ctx echo.Context) error {
 	context := contexts.GetAdminContext(ctx)
 
 	data := mailslurper.Page{
-		PublicWWWURL: c.Config.GetPublicWWWURL(),
+		PublicWWWURL: c.Config.WWWPublicURL,
 		Theme:        c.Config.GetTheme(),
 		Title:        "Manage Saved Searches",
 		User:         context.User,
