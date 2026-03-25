@@ -29,6 +29,11 @@ const (
 	DEBUG_ASSETS bool = false
 
 	CONFIGURATION_FILE_NAME string = "config.json"
+
+	// How often to run the mail cleanup
+	mailCleanupInterval = 10 * time.Minute
+	// Delete emails older than this
+	mailMaxAge = 1 * time.Hour
 )
 
 var config *mailslurper.Configuration
@@ -71,6 +76,8 @@ func main() {
 	setupAdminListener()
 	setupServicesListener()
 
+	startMailCleanup(smtpListenerContext)
+
 	defer database.Disconnect()
 
 	if config.AutoStartBrowser {
@@ -98,4 +105,25 @@ func main() {
 	if err = service.Shutdown(ctx); err != nil {
 		logger.Fatalf("Error shutting down service listener: %s", err.Error())
 	}
+}
+
+// startMailCleanup periodically deletes emails older than mailMaxAge to prevent
+// unbounded database and memory growth.
+func startMailCleanup(ctx context.Context) {
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-time.After(mailCleanupInterval):
+				cutoff := time.Now().UTC().Add(-mailMaxAge).Format("2006-01-02 15:04:05")
+				deleted, err := database.DeleteMailsAfterDate(cutoff)
+				if err != nil {
+					logger.WithError(err).Errorf("Error during mail cleanup")
+				} else if deleted > 0 {
+					logger.Infof("Mail cleanup: deleted %d emails older than %s", deleted, mailMaxAge)
+				}
+			}
+		}
+	}()
 }
