@@ -8,6 +8,7 @@ import (
 	"context"
 	"io"
 	"net"
+	"sync"
 	"time"
 
 	"github.com/pkg/errors"
@@ -23,6 +24,7 @@ type ConnectionManager struct {
 	closeChannel      chan net.Conn
 	config            *Configuration
 	connectionPool    ConnectionPool
+	mu                sync.Mutex
 	killServerContext context.Context
 	logger            *logrus.Entry
 	mailItemChannel   chan *MailItem
@@ -74,16 +76,24 @@ Close will close a client connection. The state of the worker
 is only used for logging purposes
 */
 func (m *ConnectionManager) Close(connection net.Conn) error {
+	addr := connection.RemoteAddr().String()
+
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
 	if m.connectionExistsInPool(connection) {
 		if !m.isConnectionClosed(connection) {
-			m.logger.Infof("Closing connection %s", connection.RemoteAddr().String())
-			return m.connectionPool[connection.RemoteAddr().String()].Connection.Close()
+			m.logger.Infof("Closing connection %s", addr)
+			err := m.connectionPool[addr].Connection.Close()
+			delete(m.connectionPool, addr)
+			return err
 		}
 
+		delete(m.connectionPool, addr)
 		return nil
 	}
 
-	return ConnectionNotExists(connection.RemoteAddr().String())
+	return ConnectionNotExists(addr)
 }
 
 func (m *ConnectionManager) connectionExistsInPool(connection net.Conn) bool {
@@ -117,6 +127,9 @@ use this to track a client connection and its worker
 func (m *ConnectionManager) New(connection net.Conn) error {
 	var err error
 	var worker *SMTPWorker
+
+	m.mu.Lock()
+	defer m.mu.Unlock()
 
 	if m.connectionExistsInPool(connection) {
 		return ConnectionExists(connection.RemoteAddr().String())

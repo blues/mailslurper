@@ -142,13 +142,22 @@ func (smtpWorker *SMTPWorker) Work() {
 						}
 					}
 
-					workerErrorChannel <- err
+					select {
+					case workerErrorChannel <- err:
+					default:
+						// Channel full or nobody listening — exit
+						return
+					}
 					break
 				}
 
 				if command, err = GetCommandFromString(streamInput); err != nil {
 					smtpWorker.logger.WithError(err).WithField("input", streamInput).Errorf("Problem finding command from input")
-					workerErrorChannel <- errors.Wrapf(err, "Problem finding command from input %s", streamInput)
+					select {
+					case workerErrorChannel <- errors.Wrapf(err, "Problem finding command from input %s", streamInput):
+					default:
+						return
+					}
 					break
 				}
 
@@ -174,8 +183,9 @@ func (smtpWorker *SMTPWorker) Work() {
 		case <-smtpWorker.killServerContext.Done():
 			smtpWorker.State = SMTP_WORKER_DONE
 			smtpWorker.Writer.SayGoodbye()
+			quitCommandChannel <- true
 			smtpWorker.connectionCloseChannel <- smtpWorker.Connection
-			break
+			return
 
 		case <-quitChannel:
 			smtpWorker.logger.WithField("connection", smtpWorker.Connection.RemoteAddr().String()).Infof("QUIT command received")
@@ -185,16 +195,17 @@ func (smtpWorker *SMTPWorker) Work() {
 			smtpWorker.connectionCloseChannel <- smtpWorker.Connection
 			smtpWorker.rejoinWorkerQueue()
 
-			break
+			return
 
 		case workerError := <-workerErrorChannel:
 			smtpWorker.State = SMTP_WORKER_ERROR
 			smtpWorker.Error = workerError
 			smtpWorker.Writer.SayGoodbye()
 
+			quitCommandChannel <- true
 			smtpWorker.connectionCloseChannel <- smtpWorker.Connection
 			smtpWorker.rejoinWorkerQueue()
-			break
+			return
 
 		case command := <-commandChannel:
 			if command.Command == QUIT {
