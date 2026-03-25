@@ -1,15 +1,11 @@
-FROM golang:alpine as builder
-
-LABEL maintainer="erguotou525@gmail.compute"
+FROM golang:1.17-alpine AS builder
 
 RUN apk --no-cache add git libc-dev gcc
-RUN go get github.com/mjibson/esc
 
 COPY . /go/src/github.com/mailslurper/mailslurper
 WORKDIR /go/src/github.com/mailslurper/mailslurper/cmd/mailslurper
 
-RUN go get
-RUN go generate
+RUN go mod download
 RUN go build
 
 FROM alpine:3.6

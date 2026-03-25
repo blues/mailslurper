@@ -117,7 +117,7 @@ func (s *SMTPListener) Dispatch(ctx context.Context) {
 
 			case <-ctx.Done():
 				s.logger.Infof("Shutting down receiver channel...")
-				break
+				return
 			}
 		}
 	}()
@@ -129,13 +129,13 @@ func (s *SMTPListener) Dispatch(ctx context.Context) {
 		for {
 			select {
 			case <-ctx.Done():
-				break
+				return
 
 			default:
 				connection, err := s.listener.Accept()
 				if err != nil {
 					s.logger.WithError(err).Errorf("Problem accepting SMTP requests")
-					break
+					continue
 				}
 
 				if err = s.connectionManager.New(connection); err != nil {

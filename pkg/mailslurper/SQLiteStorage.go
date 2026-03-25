@@ -40,7 +40,8 @@ func NewSQLiteStorage(connectionInformation *ConnectionInformation, logger *logr
 Connect to the database
 */
 func (storage *SQLiteStorage) Connect() error {
-	db, err := sql.Open("sqlite3", storage.connectionInformation.Filename)
+	dsn := storage.connectionInformation.Filename + "?_journal_mode=WAL&_busy_timeout=15000"
+	db, err := sql.Open("sqlite3", dsn)
 	storage.db = db
 	return errors.Wrapf(err, "Error connecting to %s", storage.connectionInformation.Filename)
 }
@@ -482,7 +483,9 @@ func (storage *SQLiteStorage) StoreMail(mailItem *MailItem) (string, error) {
 		return "", errors.Wrapf(err, "Error storing attachments to mail %s", mailItem.ID)
 	}
 
-	transaction.Commit()
+	if err = transaction.Commit(); err != nil {
+		return "", errors.Wrapf(err, "Error committing transaction in StoreMail")
+	}
 	storage.logger.Infof("New mail item written to database.")
 
 	return mailItem.ID, nil
