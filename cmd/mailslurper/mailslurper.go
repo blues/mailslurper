@@ -32,8 +32,8 @@ const (
 
 	// How often to run the mail cleanup
 	mailCleanupInterval = 10 * time.Minute
-	// Delete emails older than this
-	mailMaxAge = 1 * time.Hour
+	// Delete emails older than this (long enough to outlast a full test suite run)
+	mailMaxAge = 24 * time.Hour
 )
 
 var config *mailslurper.Configuration
